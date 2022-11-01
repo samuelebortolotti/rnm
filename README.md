@@ -2,12 +2,19 @@
 MiniMax Entropy Models.
 
 ## Author
-This program was created by [Giuseppe Marra](https://www.giuseppemarra.com/about-me/).
+This program was created by [Giuseppe Marra](https://www.giuseppemarra.com/about-me/) and his collaborators.
 
 ## About
 
 The current implementation is developed on top of the Relational Neural Machines, first introduced by Giuseppe Marra, Michelangelo Diligenti, Francesco Giannini, Marco Gori and Marco Maggini from the Department of Information Engineering of the University of Florence and from the University of Siena.
+
 [![DOI:10.48550](http://img.shields.io/badge/DOI-10.48550-red.svg)](https://doi.org/10.48550/arXiv.2002.02193)
+
+Current tests on Google Colab:
+
+```markdown
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Iho_Vd2w44igY0NRHFOoH24smBZcCDbd?usp=sharing)
+```
 
 ## Relational Neural Networks background
 
@@ -31,7 +38,7 @@ Moreover, to facilitate the use of the application, a Makefile has been provided
 
  ```bash
  git clone https://github.com/samuelebortolotti/rnm.git
- cd uda
+ cd rnm
  ```
 
 ### 2. Install the requirements
