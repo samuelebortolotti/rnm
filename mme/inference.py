@@ -1,4 +1,8 @@
+"""inference.py
+Module containing all the information needed to perform inference
+"""
 import tensorflow as tf
+
 # import tensorflow_probability as tfp
 import numpy as np
 
@@ -412,10 +416,37 @@ import numpy as np
 #
 #
 
-class FuzzyMAPInference():
 
-    def __init__(self, y_shape, potential, logic, evidence, evidence_mask, learning_rate=0.001, initial_value=None, external_map=None):
+class FuzzyMAPInference:
+    """
+    This class is probably the one that does the Maximum a Posteriori estimation in order to retrieve the most probable configuration
+    exploiting the relaxation of the constraints (potentials) through the employment of the fuzzy logic
+    Which is basically inference
+    """
 
+    def __init__(
+        self,
+        y_shape,
+        potential,
+        logic,
+        evidence,
+        evidence_mask,
+        learning_rate=0.001,
+        initial_value=None,
+        external_map=None,
+    ):
+        """Constructor of the FuzzyMAPInference class
+
+        Args:
+            y_shape: y shape
+            potential: potential
+            logic: logic
+            evidence: evidence
+            evidence_mask: evidence mask
+            learning_rate=0.001: learning rate
+            initial_value=None: initial value
+            external_map=None: external map
+        """
         # MAP
         self.potential = potential
         for p in self.potential.potentials:
@@ -424,35 +455,51 @@ class FuzzyMAPInference():
         self.y_shape = y_shape
         self.var_dict = external_map
         if self.var_dict is None:
-            self.var_map =  tf.Variable(initial_value) if initial_value is not None else tf.Variable(0.5 * tf.ones(y_shape))
+            self.var_map = (
+                tf.Variable(initial_value)
+                if initial_value is not None
+                else tf.Variable(0.5 * tf.ones(y_shape))
+            )
         else:
             self.var_map = self.var_dict["var"]
         self.opt = tf.keras.optimizers.Adam(learning_rate)
         self.evidence = evidence
         self.evidence_mask = evidence_mask
 
-
-
     def infer_step(self, x=None):
+        """Method representing the inference step
 
+        Args:
+            x: optional tensor
+        """
 
         with tf.GradientTape() as tape:
             y = self.map()
-            p_m = - self.potential(y, x=x)
+            p_m = -self.potential(y, x=x)
         grad = tape.gradient(p_m, self.var_map)
         grad_vars = [(grad, self.var_map)]
         self.opt.apply_gradients(grad_vars)
 
     def map(self):
+        """Map function"""
         if self.var_dict is None:
             y_map = tf.where(self.evidence_mask, self.evidence, self.var_map)
-            return tf.sigmoid(10*(y_map - 0.5))
+            return tf.sigmoid(10 * (y_map - 0.5))
         else:
             external_map = tf.nn.softmax(self.var_dict["var"])
-            external_map = tf.where(self.var_dict["mask_train_labels"] > 0, self.var_dict["labels"], external_map)
+            external_map = tf.where(
+                self.var_dict["mask_train_labels"] > 0,
+                self.var_dict["labels"],
+                external_map,
+            )
             external_map = tf.concat(
-                (tf.reshape(tf.transpose(external_map, [1, 0]), [1, -1]), self.var_dict["hb_all"][:, self.var_dict["num_examples"] * self.var_dict["num_classes"]:]),
-                axis=1)
+                (
+                    tf.reshape(tf.transpose(external_map, [1, 0]), [1, -1]),
+                    self.var_dict["hb_all"][
+                        :,
+                        self.var_dict["num_examples"] * self.var_dict["num_classes"] :,
+                    ],
+                ),
+                axis=1,
+            )
             return external_map
-
-

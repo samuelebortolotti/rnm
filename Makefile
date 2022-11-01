@@ -24,11 +24,11 @@ LANGUAGE := --language en
 SPHINX_EXTENSIONS := --extensions sphinx.ext.autodoc --extensions sphinx.ext.napoleon --extensions sphinx.ext.viewcode --extensions myst_parser
 DOC_FOLDER := docs
 COPY := cp -rf
-IMG_FOLDER :=
+#IMG_FOLDER :=
 
 # ======= FORMAT ===================
 FORMAT := black
-FORMAT_FLAG := rnm
+FORMAT_FLAG := mme
 
 ## Quickstart
 SPHINX_QUICKSTART := sphinx-quickstart
@@ -129,7 +129,7 @@ doc-layout:
 	# Sphinx theme
 	@$(SED) -i -e "s/html_theme = 'alabaster'/html_theme = '$(SPHINX_THEME)'/g" $(DOC_FOLDER)/source/conf.py 
 	# Copy the image folder inside the doc folder
-	@$(COPY) $(IMG_FOLDER) $(DOC_FOLDER)/source
+	# @$(COPY) $(IMG_FOLDER) $(DOC_FOLDER)/source
 	@$(ECHO) '$(BLUE)Done$(NONE)'
 
 doc:

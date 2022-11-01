@@ -1,13 +1,24 @@
+"""utils.py
+Some utils functionalities
+"""
 import os, select, sys
 import pickle
 
-if os.name == 'nt':
+"""
+In Windows NT import msvcrt
+"""
+if os.name == "nt":
     import msvcrt
 
-def heardEnter():
-    # Listen for the user pressing ENTER
 
-    if os.name == 'nt':
+def heardEnter():
+    """
+    Function which listens for the user pressing ENTER key
+
+    Returns:
+        bool: True if the user presses something on the key, False otherwise
+    """
+    if os.name == "nt":
         if msvcrt.kbhit():
             if msvcrt.getch() == b"q":
                 print("Quit key pressed.")
@@ -22,12 +33,29 @@ def heardEnter():
                 return True
         return False
 
+
 def save(path, o):
-    with open(path, 'wb') as handle:
+    """
+    Function which saves the object o in a Pickle file in path
+
+    Args:
+        path: path where to save the file
+        o: object to save
+    """
+    with open(path, "wb") as handle:
         pickle.dump(o, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def restore(path):
-    with open(path, 'rb') as handle:
+    """
+    Function which loads the object in the Pickle file pointed by path
+
+    Args:
+        path: path where the file to restore is file
+
+    Returns:
+        o: object read
+    """
+    with open(path, "rb") as handle:
         o = pickle.load(handle)
     return o
