@@ -30,6 +30,11 @@ COPY := cp -rf
 FORMAT := black
 FORMAT_FLAG := mme
 
+# ======= TESTS ===================
+TEST := unittest
+TEST_FLAG := discover -s 
+TEST_FOLDER := tests
+
 ## Quickstart
 SPHINX_QUICKSTART := sphinx-quickstart
 SPHINX_QUICKSTART_FLAGS := --sep --no-batchfile --project relational-neural-machines $(AUTHORS) $(VERSION) $(LANGUAGE) $(SPHINX_EXTENSIONS)
@@ -85,7 +90,7 @@ OPEN := xdg-open
 SED := sed
 	
 # RULES
-.PHONY: help env install install-dev doc-layout open-doc format-code
+.PHONY: help env install install-dev doc-layout open-doc format-code test
 
 help:
 	@$(ECHO) '$(YELLOW)Makefile help$(NONE)'
@@ -96,7 +101,8 @@ help:
 	* doc-layout 		: generates the Sphinx documentation layout\n \
 	* doc 			: generates the documentation (requires an existing documentation layout)\n \
 	* format-code 		: formats the code employing black python formatter\n \
-	* help 			: prints this message\n \
+	* test 		: run the MME tests\n \
+	* help 		: prints this message\n \
 	* open-doc 		: opens the documentation\n"
 
 env:
@@ -136,6 +142,11 @@ doc:
 	@$(ECHO) '$(BLUE)Generating the documentation..$(NONE)'
 	$(SPHINX_API_DOC) $(SPHINX_API_DOC_FLAGS)
 	cd $(DOC_FOLDER); $(SPHINX_BUILD)
+	@$(ECHO) '$(BLUE)Done$(NONE)'
+
+test:
+	@$(ECHO) '$(BLUE)Running tests...$(NONE)'
+	@$(PYTHON) $(PYFLAGS) $(TEST) $(TEST_FLAG) $(TEST_FOLDER)
 	@$(ECHO) '$(BLUE)Done$(NONE)'
 
 open-doc:

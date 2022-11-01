@@ -1,3 +1,11 @@
+"""test1.py
+Test some tensorflow functionality
+"""
+import os, sys
+
+# Add the parent to the test path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import unittest
 from mme import Ontology, Domain, Predicate
 import mme
@@ -6,32 +14,23 @@ import numpy as np
 import tensorflow as tf
 import datasets
 
+y = [[0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0]]  # friend of  # smokes
+
+y_e = [[0, 1, 0, 1, 0, 0, 0, 0, 0, -1, -1, -1]]  # friend of  # smokes
+m_e = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0]]  # friend of  # smokes
 
 
-y = [[0, 1, 0, #friend of
-             1, 0, 0,
-             0, 0, 0,
-             1, 1, 0]]#smokes
-
-y_e = [[0, 1, 0, #friend of
-               1, 0, 0,
-               0, 0, 0,
-               -1, -1, -1]]#smokes
-m_e = [[1,1, 1, #friend of
-        1, 1, 1,
-        1, 1, 1,
-        0, 0, 0]]#smokes
-
-
-G_c1 = [[9, 0, 9], #smokes(Alice), friendOf(Alice,Alice), smokes(Alice)
-        [9, 1, 10],
-        [9, 2, 11],
-        [10, 3, 9],
-        [10, 4, 10],
-        [10, 5, 11],
-        [11, 6, 9],
-        [11, 7, 10],
-        [11, 8, 11]]
+G_c1 = [
+    [9, 0, 9],  # smokes(Alice), friendOf(Alice,Alice), smokes(Alice)
+    [9, 1, 10],
+    [9, 2, 11],
+    [10, 3, 9],
+    [10, 4, 10],
+    [10, 5, 11],
+    [11, 6, 9],
+    [11, 7, 10],
+    [11, 8, 11],
+]
 
 m_e = np.array(m_e)
 G_c1 = np.array(G_c1)
@@ -41,36 +40,29 @@ m_e_G_c1 = np.take(m_e, G_c1, axis=1)
 y_e_G_c1 = np.take(y_e, G_c1, axis=1)
 
 
-
-k =  n - sum(m_e_G_c1[0,0])
+k = n - sum(m_e_G_c1[0, 0])
 num_example = 1
 
 
 shape = [n, num_example, N, 2**k]
 
-indices = tf.where(m_e_G_c1[0][0]>0)
-given = tf.reshape(tf.gather(y_e_G_c1, tf.squeeze(indices), axis=-1), [1, num_example, -1, 1])
+indices = tf.where(m_e_G_c1[0][0] > 0)
+given = tf.reshape(
+    tf.gather(y_e_G_c1, tf.squeeze(indices), axis=-1), [1, num_example, -1, 1]
+)
 given = tf.cast(tf.tile(given, [1, 1, 1, 2**k]), tf.float32)
 first = tf.scatter_nd(shape=shape, indices=indices, updates=given)
 
 
-indices =tf.where(m_e_G_c1[0][0]<1)
+indices = tf.where(m_e_G_c1[0][0] < 1)
 l = list(product([False, True], repeat=k))
 comb = np.stack(l, axis=1).astype(np.float32)
-assignments = np.tile(np.reshape(comb, [-1,1,1,2**k]), [1,1,N,1])
+assignments = np.tile(np.reshape(comb, [-1, 1, 1, 2**k]), [1, 1, N, 1])
 second = tf.scatter_nd(shape=shape, indices=indices, updates=assignments)
 
-final = tf.transpose(first+second, [1,2,3,0])
+final = tf.transpose(first + second, [1, 2, 3, 0])
 
 print(final)
-
-
-
-
-
-
-
-
 
 
 # given = np.tile(np.expand_dims(y_e_G_c1, axis=-2), [1,2**k,1])

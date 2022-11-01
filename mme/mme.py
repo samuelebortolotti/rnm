@@ -1,10 +1,12 @@
 """mme.py
 Implements all the methods and classes for the MiniMax Entropy Model
 """
-from .parser import Formula
+# fix absolute import for package named the same as the files
+from __future__ import absolute_import
+from mme.parser import Formula
 from collections import OrderedDict
 import tensorflow as tf
-from .potentials import (
+from mme.potentials import (
     LogicPotential,
     SupervisionLogicalPotential,
     CountableGroundingPotential,

@@ -6,6 +6,9 @@ This program was created by [Giuseppe Marra](https://www.giuseppemarra.com/about
 
 ## About
 
+The current implementation is developed on top of the Relational Neural Machines, first introduced by Giuseppe Marra, Michelangelo Diligenti, Francesco Giannini, Marco Gori and Marco Maggini from the Department of Information Engineering of the University of Florence and from the University of Siena.
+[![DOI:10.48550](http://img.shields.io/badge/DOI-10.48550-red.svg)](https://doi.org/10.48550/arXiv.2002.02193)
+
 ## Relational Neural Networks background
 
 ## Proposed solution
