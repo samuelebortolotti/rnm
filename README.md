@@ -12,9 +12,7 @@ The current implementation is developed on top of the Relational Neural Machines
 
 Current tests on Google Colab:
 
-```markdown
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Iho_Vd2w44igY0NRHFOoH24smBZcCDbd?usp=sharing)
-```
 
 ## Relational Neural Networks background
 
@@ -89,7 +87,7 @@ make open-doc
 However, for the sake of completeness one may want to run the full Sphinx commands listed here.
 
 ```bash
-sphinx-quickstart docs --sep --no-batchfile --project unsupervised-domain-adaptation --author "Giuseppe Marra, Samuele Bortolotti"  -r 0.1  --language en --extensions sphinx.ext.autodoc --extensions sphinx.ext.napoleon --extensions sphinx.ext.viewcode --extensions myst_parser
+sphinx-quickstart docs --sep --no-batchfile --project reational-neural-machines --author "Giuseppe Marra et al., Samuele Bortolotti"  -r 0.1  --language en --extensions sphinx.ext.autodoc --extensions sphinx.ext.napoleon --extensions sphinx.ext.viewcode --extensions myst_parser
 sphinx-apidoc -P -o docs/source .
 cd docs; make html
 ```

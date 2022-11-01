@@ -111,3 +111,5 @@ experiments/
 data/
 # Doc
 docs/
+# colab secret
+colab-secret
