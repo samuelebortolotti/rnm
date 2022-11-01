@@ -1,14 +1,31 @@
+"""dataset.py
+Modules which deals with the dataset
+"""
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 import scipy.ndimage as img
 import matplotlib.pyplot as plt
 
+"""
+Set the numpy random seed
+"""
 np.random.seed(0)
 
 
 def mnist_linked_plus_minus_1(num_examples):
+    """Minist plus the link with plus and minus knowledge
+
+    Args:
+        num_examples: number of examples
+    """
+
     def __inner__(y_train):
+        """Inner method of the dataset
+
+        Args:
+            y_train: label of the training data
+        """
         hb_link = np.zeros([num_examples, num_examples])
         for i, x in enumerate(y_train):
             for j, y in enumerate(y_train):
@@ -31,11 +48,14 @@ def mnist_linked_plus_minus_1(num_examples):
         hb = np.concatenate([hb_digit, hb_link, hb_pm1, hb_equal], axis=1)
         return hb
 
+    # train and test set split
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
+    # select the samples
     x_train = x_train[:num_examples]
     y_train = y_train[:num_examples]
 
+    # select the samples
     x_test = x_test[:num_examples]
     y_test = y_test[:num_examples]
 
@@ -49,8 +69,18 @@ def mnist_linked_plus_minus_1(num_examples):
 
 
 def mnist_equal(num_examples):
-    def __inner__(y_train):
+    """Mnist equal function
 
+    Args:
+        num_examples: number of examples
+    """
+
+    def __inner__(y_train):
+        """Inner method of the dataset
+
+        Args:
+            y_train: label of the training data
+        """
         y_train = np.eye(10)[y_train]
         hb_digit = np.reshape(y_train, [1, -1])
 
@@ -77,7 +107,13 @@ def mnist_equal(num_examples):
 
 
 def mnist_follows(num_examples, seed=0, perc_soft=0.1):
+    """Mnist follows
 
+    Args:
+        num_examples: number of examples
+        seed: seed
+        perc_soft: perc soft
+    """
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
     print(len(x_train))
@@ -132,6 +168,12 @@ def mnist_follows(num_examples, seed=0, perc_soft=0.1):
 
 
 def citeseer(test_size=0.5, valid_size=0.0):
+    """Citeseer dataset
+
+    Args:
+        test_size: test size in percentage
+        valid_size: validation set in percentage
+    """
     documents = np.load("data/citeseer/words.npy")
     n = len(documents)
     documents = documents[:n]
@@ -171,7 +213,13 @@ def citeseer(test_size=0.5, valid_size=0.0):
 
 
 def citeseer_em(test_size, valid_size, seed):
+    """Citeseer em dataset
 
+    Args:
+        test_size: test size in percentage
+        valid_size: validation set in percentage
+        seed: seed
+    """
     documents = np.load("data/citeseer/words.npy")
     n = len(documents)
     documents = documents[:n]
