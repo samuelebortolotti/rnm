@@ -227,6 +227,8 @@ class PieceWiseTraining:
     And for the symbolic learning
     """
 
+    import wandb
+
     def __init__(self, global_potential, y=None, learning_rate=0.001, minibatch=None):
         """Constructor of the PieceWiseTraining class
 
@@ -313,6 +315,7 @@ class PieceWiseTraining:
                     xent += tf.reduce_sum(p.model.losses)
 
                 # compute the gradient thanks to the tape
+                wandb.log({"nn/loss": xent})
                 grad = tape.gradient(target=xent, sources=p.model.variables)
 
                 # Apply Gradients by means of Optimizer

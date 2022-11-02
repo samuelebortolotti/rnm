@@ -22,6 +22,10 @@ Current tests on Google Colab:
 
 ## Results
 
+### MNIST
+
+The Neural Network employed in `MNIST` is ![Architecture NN](.github/nn_mnist.png)
+
 # Getting Started
 
 Follow these instructions to set up the project on your PC.
