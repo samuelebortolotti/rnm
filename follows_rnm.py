@@ -70,7 +70,7 @@ def main(lr, seed, perc_soft, l2w):
 
     """Init wandb"""
     wandb.init(project="relational-neural-machines", entity="samu32")
-    wandb.login()
+    print(lr, seed, perc_soft)
 
     """Number of examples as listed in the paper"""
     num_examples = 50
