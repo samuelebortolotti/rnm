@@ -50,11 +50,13 @@ class CountableGroundingPotential(Potential):
         pass
 
     def reduce_groundings(self, y):
-        """Reduce grounding method"""
+        """Reduce grounding method, computes the mean row-wise"""
         return tf.reduce_mean(y, axis=-1)
 
     def __call__(self, y, x=None):
         """Forward step of the CountableGroundingPotential
+        Calls: ground of x and y, call on groundings taking g and x_g (outputs of ground)
+        and returns the output of r obtained from reduce_groundings of g
 
         Args:
             y: input tensor
@@ -161,7 +163,7 @@ class GlobalPotential(tf.Module):
         """Constructor for the GlobalPotential class
 
         Args:
-            potentials: tuple of potentials
+            potentials: list of potentials
         """
         super(GlobalPotential, self).__init__()
         self.potentials = list(potentials)
@@ -302,15 +304,19 @@ class SupervisionLogicalPotential(Potential):
 
         Args:
             model: model (neural network basically)
-            indices: indices
+            indices: indices of the data
         """
         super(SupervisionLogicalPotential, self).__init__()
         self.model = model
+        # beta now is a vector of ones, unlike in Poential
         self.beta = tf.Variable(initial_value=tf.ones(shape=()))
         self.indices = indices
 
     def _reshape_y(self, y):
         """Reshape y private method
+        Basically slices y using the indices variable:
+            selects the elements of the y tensor variable using set of indices
+            indicated in the indices variable
 
         Args:
             y: input tensor
@@ -320,18 +326,24 @@ class SupervisionLogicalPotential(Potential):
 
     def __call__(self, y, x=None):
         """Forward method of the SupervisionLogicalPotential
+        Once called, it casts the input in a tensorflow variable (of type float32)
 
         Args:
             y: input tensor
             x: optional input tensor
         """
         y = tf.cast(y, tf.float32)  # num_examples x num_variables
+        # reshapes y with gather
         y = self._reshape_y(
             y
         )  # num_examples x num_groundings x num_variable_in_grounding
+        # forward of the model
         o = self.model(x)
+        # reshape the output in in the right shape
         o = tf.reshape(o, [y.shape[0], x.shape[-2], -1])
+        # compute the mean of the element across the axis (all not the rows) (all not the rows)
         t = tf.reduce_mean(o * y, axis=tf.range(len(y.shape))[1:])
+        # returns the normalized vector
         return t
 
 
@@ -340,6 +352,11 @@ class MutualExclusivityPotential(CountableGroundingPotential):
 
     Extends:
         CountableGroundingPotential
+
+    Thus the call method:
+        - calls ground(x, y)
+        - calls call_on_groundings(g, g_x)
+        - returns reduce_groundings(g)
     """
 
     def __init__(self, indices):
@@ -356,7 +373,7 @@ class MutualExclusivityPotential(CountableGroundingPotential):
         """Cardinality property
 
         Returns:
-            the lenght of the indices at index 0
+            the lenght of the indices at index 0 (basically the number of columns)
         """
         return len(self.indices[0])
 
@@ -365,7 +382,7 @@ class MutualExclusivityPotential(CountableGroundingPotential):
         """Number of groundings property
 
         Returns:
-            length of the indices
+            length of the indices, the number of rows of the indices
         """
         return len(self.indices)
 
@@ -375,6 +392,10 @@ class MutualExclusivityPotential(CountableGroundingPotential):
         Args:
             y: input tensor
             x: optional input tensor
+
+        Returns:
+            g: the elements of y at the specified indices (the one of the potential) [None if there are not any]
+            x: the input [optional] passed
         """
         if y is not None:
             g = tf.gather(y, self.indices, axis=-1)
@@ -386,13 +407,18 @@ class MutualExclusivityPotential(CountableGroundingPotential):
         """Call on groundings
 
         Args:
-            y: input tensor
-            x: optional input tensor
+            y: input tensor (coming from the ground operations)
+            x: optional input tensor (coming from the ground operation)
+
+        Returns:
+            g: (if y is none it is equal to None) -> a constant vector of value self.cardinality of size
+            -> self.num_groundings
         """
         if y is None:
             return self.cardinality * tf.ones([1, self.num_groundings])
         else:
             y = tf.cast(y, tf.float32)
+        # number of dimensions - 1
         n = len(y.shape) - 1
         # o_m_y = 1 - y
         y_exp = tf.expand_dims(1 - y, axis=-2) * (1 - tf.eye(self.cardinality))
@@ -432,16 +458,24 @@ class EvidenceLogicPotential(CountableGroundingPotential):
 
     @property
     def cardinality(self):
-        """Cardinality property"""
+        """Cardinality property
+
+        Returns:
+            the number of given predicate in atoms
+        """
         return len([0 for i in self.formula.atoms if not i.predicate.given])
 
     @property
     def num_groundings(self):
-        """Number of groundings property"""
+        """Number of groundings property
+
+        Returns:
+            number of groundings of the formula
+        """
         return self.formula.num_groundings
 
     def ground(self, y, x=None):
-        """Ground
+        """Ground the passed formulas
 
         Args:
             y: input tensor
@@ -469,4 +503,4 @@ class EvidenceLogicPotential(CountableGroundingPotential):
             groundings=y, logic=self.logic
         )  # num_examples, num_groundings, num_possible_assignment_to_groundings
         t = tf.cast(t, tf.float32)
-        return tf.reduce_sum(t, axis=-1)
+        return tf.reduce_sum(t, axis=-1)  # sum

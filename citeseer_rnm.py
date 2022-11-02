@@ -1,3 +1,11 @@
+"""citeseer_rnm.py
+The domain knowledge here is represented in paper connections p1 and p2 which tend to be about
+the same topic. For example:
+∀p1 ∀p2 AG(p1 ) ∧ Cite(p1 , p2 ) → AG(p2 )
+
+Where Cite is an evidence predicate (value over the groundings is known a priori), determining whether
+a pattern cites another one.
+"""
 import mme
 import tensorflow as tf
 import datasets
@@ -5,11 +13,13 @@ import numpy as np
 import os
 from itertools import product
 
+"""Cuda visible devices"""
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-
+"""Get logger"""
 tf.get_logger().setLevel("ERROR")
 
+"""Savings"""
 base_savings = os.path.join("savings", "citeseer")
 pretrain_path = os.path.join(base_savings, "pretrain")
 posttrain_path = os.path.join(base_savings, "posttrain")
@@ -26,7 +36,23 @@ def main(
     map_steps=20,
     em_cycles=4,
 ):
+    """Main function of the citeseer with RNM
 
+    Args:
+        lr: learning rate
+        seed: seed
+        lambda_0: lambda_0
+        l2w: weight of the l2 regularizer
+        valid_size: validation size
+        run_on_test: run on test
+        map_steps: maximum number of steps
+        em_cycles: em cycles
+
+    Returns:
+        acc_nn: accuracy of the neural network
+        acc_map: accuracy of the maximum a posteriori
+    """
+    # get data from citeseer
     (
         (x_train, hb_train),
         (x_valid, hb_valid),
@@ -41,6 +67,7 @@ def main(
     num_examples = len(x_all)
     num_classes = 6
 
+    # set the seeds
     np.random.seed(seed)
     tf.random.set_seed(seed)
 
@@ -54,7 +81,6 @@ def main(
         hb_to_test = hb_test
         num_examples_to_test = len(x_test)
         indices_to_test = indices[teid]
-
     else:
         x_to_test = x_valid
         hb_to_test = hb_valid
@@ -90,6 +116,7 @@ def main(
         np.arange(num_classes * docs.num_constants), [num_classes, docs.num_constants]
     ).T  # T because we made classes as unary potentials
 
+    """Network defintion"""
     nn = tf.keras.Sequential()
     nn.add(tf.keras.layers.Input(shape=(x_train.shape[1],)))
     nn.add(
@@ -108,6 +135,8 @@ def main(
         )
     )  # up to the last hidden layer
     nn.add(tf.keras.layers.Dense(num_classes, use_bias=False))
+
+    # logical with supervision given the indices and the nn
     p1 = mme.potentials.SupervisionLogicalPotential(nn, indices)
     potentials.append(p1)
 
@@ -120,9 +149,12 @@ def main(
     evidence_mask = np.zeros_like(hb_all)
     evidence_mask[:, num_examples * num_classes :] = 1
     for name in preds:
+        # for name in prediction
+        # formmula
         c = mme.Formula(
             definition="%s(x) and cite(x,y) -> %s(y)" % (name, name), ontology=o
         )
+        # get the evidence logic potential
         p3 = mme.potentials.EvidenceLogicPotential(
             formula=c,
             logic=mme.logic.BooleanLogic,
@@ -131,6 +163,7 @@ def main(
         )
         potentials.append(p3)
 
+    # get the Global Potential from the potentials
     P = mme.potentials.GlobalPotential(potentials)
 
     def pretrain_step():
@@ -308,7 +341,9 @@ def main(
 
 
 if __name__ == "__main__":
-    seed = 0
+    """Main function"""
+    seed = 0  # set the seed
+    """Write the file header"""
     with open("res_dlm_10_splits", "w") as file:
         file.write("seed, test, acc_map, acc_nn\n")
     res = []
@@ -326,8 +361,10 @@ if __name__ == "__main__":
             (0.9, 0.001, 4, 30),
         ],
     ):
-
+        """Once again looping over all the hyperparameters"""
+        # get seed, test-size, lambda_0, em_cycles, steps
         seed, (test_size, lambda_0, em_cycles, steps) = a
+        # get the accuracy of the map and the accuracy of the nn
         acc_map, acc_nn = main(
             lr=1.0,
             seed=seed,
@@ -339,11 +376,15 @@ if __name__ == "__main__":
             map_steps=steps,
             em_cycles=em_cycles,
         )
+        # to numpy
         acc_map, acc_nn = acc_map.numpy(), acc_nn.numpy()
+        # format
         res.append(
             "\t".join([str(a) for a in [seed, test_size, acc_map, str(acc_nn) + "\n"]])
         )
+        # print
         for i in res:
             print(i)
+        # append to the csv file
         with open("res_rnm_10_splits", "a") as file:
             file.write(res[-1])

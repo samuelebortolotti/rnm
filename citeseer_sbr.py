@@ -1,3 +1,6 @@
+"""citeseer_sbr.py
+CiteSerr with Semantic Based Regularization
+"""
 import mme
 import tensorflow as tf
 import datasets
@@ -17,6 +20,21 @@ posttrain_path = os.path.join(base_savings, "posttrain")
 def main(
     lr, seed, test_size, valid_size=0.0, l2w=0.006, w_rule=500.0, run_on_test=False
 ):
+    """Main
+
+    Args:
+        lr: learning rate
+        seed: seed
+        test_size: test size
+        valid_size: validation size
+        l2w: l2 regularizer weight
+        w: weight rule
+        run_on_test: run on test
+
+    Returns:
+        acc_map: accuracy of the map
+        acc_nn: accuracy of the neural network
+    """
     (
         (x_train, hb_train),
         (x_valid, hb_valid),
@@ -43,6 +61,8 @@ def main(
     indices = np.reshape(
         np.arange(num_classes * num_examples), [num_classes, num_examples]
     ).T  # T because we made classes as unary potentials
+
+    # Neural Network
     nn = tf.keras.Sequential()
     nn.add(tf.keras.layers.Input(shape=(x_all.shape[1],)))
     nn.add(
@@ -66,14 +86,17 @@ def main(
     x_ids = np.reshape(np.tile(rng, [num_examples, 1]).T, [-1])
     y_ids = np.tile(rng, [num_examples])
 
+    # Logic LukasiewiczLogic
     l = mme.logic.LukasiewiczLogic
 
     cite = np.tile(
         np.expand_dims(hb_all[0, num_examples * num_classes :], 1), [1, num_classes]
     )
 
+    # optimizers
     adam = tf.keras.optimizers.Adam(lr=0.001)
 
+    # training step
     def training_step(logic=False):
         with tf.GradientTape() as tape:
             neural_logits = nn(x_all[trid])
@@ -186,12 +209,15 @@ def main(
 
 
 if __name__ == "__main__":
+    """Main function"""
     res = []
     np.random.seed(0)
+    # seeds
     seeds = np.random.choice(np.arange(1000), [10], replace=False)
     # seeds=[0]
     for a in product(seeds, [0.1, 0.25, 0.5, 0.75, 0.9], [500]):
-        seed, test_size, w_rule = a
+        seed, test_size, w_rule = a  # get the hyperparameters
+        # get the accuracy map or accuracy nn
         acc_map, acc_nn = main(
             lr=0.001,
             seed=seed,
@@ -202,14 +228,17 @@ if __name__ == "__main__":
             run_on_test=True,
         )
         acc_map, acc_nn = acc_map.numpy(), acc_nn.numpy()
+        # res
         res.append(
             ",".join(
                 [str(a) for a in [seed, test_size, w_rule, acc_map, str(acc_nn) + "\n"]]
             )
         )
+        # print the result
         for i in res:
             print(i)
 
+    # write the csv
     with open("res_sbr_10splits", "w") as file:
         file.write("seed, test_size, w_rule, acc_map, acc_nn\n")
         file.writelines(res)

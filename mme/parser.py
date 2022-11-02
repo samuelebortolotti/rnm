@@ -175,36 +175,39 @@ class Formula(object):
         """Constructor of the Formula class
 
         Args:
-            ontology: ontology
-            definition: definition
+            ontology: ontology where the formula belongs
+            definition: definition of the formula
         """
         self.ontology = ontology
         self.variables = (
             OrderedDict()
         )  # the variables of a formula are ordered dictionaries
-        self.atoms = []
-        self.logic = None
+        self.atoms = (
+            []
+        )  # atoms of the formula (predicate applied to a tuple of terms which is an atomic formula standalone)
+        self.logic = None  # logic of the formula
         # parse the definition in order to get the expression tree
         self.expression_tree = self.parse(definition)
 
         # Computing Variable indices
-        sizes = []
+        sizes = []  # contains the number of constants for each variable
         for i, (k, v) in enumerate(self.variables.items()):
             sizes.append(range(v.domain.num_constants))
 
         # Cartesian Product
-        indices = [i for i in product(*sizes)]
+        indices = [i for i in product(*sizes)]  # product of indices
         indices = np.array(indices)
         for i, (k, v) in enumerate(self.variables.items()):
             v.set_indices(indices[:, i])
 
-        # Computing Atom indices
+        # Computing Atom indices (as expected atoms are predicates of the ontology let alone)
         for i, a in enumerate(self.atoms):
             a.set_indices(self.ontology.predicate_range[a.predicate.name][0])
 
         # Num groundings of the formula = num grounding of a generic atom
         self.num_groundings = self.atoms[0].num_groundings
 
+        # number of given perdicates
         self.num_given = sum([1 for a in self.atoms if a.predicate.given])
 
     def all_grounding_assignments(self):
@@ -282,6 +285,7 @@ class Formula(object):
         """
 
         def _create(tokens):
+            # create an atomic token
             if class_name == "Atomic":
                 predicate_name = tokens[0]
                 predicate = self.ontology.predicates[predicate_name]
@@ -316,7 +320,10 @@ class Formula(object):
         """Parse the formula
 
         Args:
-            definition: definition
+            definition: definition of the formula
+
+        Returns:
+            tree[0]: root of the parsed tree definition
         """
         left_parenthesis, right_parenthesis, colon, left_square, right_square = map(
             Suppress, "():[]"
@@ -343,12 +350,15 @@ class Formula(object):
         exists_expression = exists + symbol + colon + Group(formula)
         exists_expression.setParseAction(self._parse_action("EXISTS"))
 
+        # relation
         relation = oneOf(list(self.ontology.predicates.keys()))
         atomic_formula = (
             relation + left_parenthesis + delimitedList(var) + right_parenthesis
         )
+        # atomic formula
         atomic_formula.setParseAction(self._parse_action("Atomic"))
         espression = forall_expression | exists_expression | atomic_formula
+        # infix notation
         formula << infixNotation(
             espression,
             [
@@ -362,7 +372,9 @@ class Formula(object):
         )
 
         constraint = var ^ formula
+        # parse the string with the constraints
         tree = constraint.parseString(definition, parseAll=True)
+        # return the tree root
         return tree[0]
 
     def compile(self, groundings, logic=BooleanLogic):
@@ -372,7 +384,7 @@ class Formula(object):
 
         Args:
             grounding: grounding
-            logic: logic
+            logic: logic (by default the logic is boolean)
         """
         self.logic = logic
         t = self.expression_tree.compile(groundings)
@@ -381,6 +393,7 @@ class Formula(object):
 
     def ground(self, herbrand_interpretation):
         """Ground
+        Stacks all the grounds in the rows for each herbrand interpretation
 
         Args:
             herbrand_interpretation: herbrand interpretation

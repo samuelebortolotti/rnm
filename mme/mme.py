@@ -16,7 +16,10 @@ from collections.abc import Iterable
 
 
 class Domain:
-    """Domain class"""
+    """Domain class
+    Defines an ontology domain.
+    It basically consists in a name and a series of data
+    """
 
     def __init__(self, name, data):
         """Constructor of the domain
@@ -34,10 +37,14 @@ class Domain:
 
 
 class Predicate:
-    """Predicate class"""
+    """Predicate class
+    Defines the predicate for the ontology
+    It basically consists in a name, some domains and a given flag
+    """
 
     def __init__(self, name, domains, given=False):
         """Constructor of the predicate
+        Raises an exception if the domain passed are not instances of Domain class
 
         Args:
             name: name of the predicate
@@ -46,10 +53,14 @@ class Predicate:
         """
         self.name = name
         self.domains = []
+        # initial groundings number is 1
         groundings_number = 1
+        # for each domain
         for domain in domains:
+            # domain should be a subclass of Domain
             if not isinstance(domain, Domain):
                 raise Exception(str(domain) + " is not an instance of " + str(Domain))
+            # append the domain, and multiply the grounding nmbers with the constants number in the domain
             self.domains.append(domain)
             groundings_number *= domain.num_constants
         self.groundings_number = groundings_number
@@ -57,10 +68,22 @@ class Predicate:
 
 
 class Ontology:
-    """Ontology class"""
+    """Ontology class
+    Defines the application logic
+    """
 
     def __init__(self):
-        """Constructor of the Ontology class"""
+        """Constructor of the Ontology class
+
+        An Herbrand base is a set of all the ground atoms of whose argument terms are the Herbrand Universe.
+
+        Attributes:
+            - domains: domains of the logic
+            - predicates: logical predicates
+            - herbrand base size: size of the Herbrand base
+            - finalized: whether they are finalized or not
+            - constraints: constraints which holds
+        """
 
         self.domains = {}
         self.predicates = OrderedDict()
@@ -198,19 +221,23 @@ class MonteCarloTraining:
 
 
 class PieceWiseTraining:
-    """PieceWiseTraining class"""
+    """PieceWiseTraining class
+
+    From what I know, this class shoul define the training both for the supervised (subsymbolic learning)
+    And for the symbolic learning
+    """
 
     def __init__(self, global_potential, y=None, learning_rate=0.001, minibatch=None):
         """Constructor of the PieceWiseTraining class
 
         Args:
-            global_potential: global potential
+            global_potential: global potential (container of potentials)
             y: optional tensor
             learning_rate: learning rate [default 0.001]
             minibatch: mini batch
         """
         self.global_potential = global_potential
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate)  # Adam optimizer
         self.minibatch = minibatch  # list of indices to gather from data
         self.y = y
 
@@ -223,23 +250,30 @@ class PieceWiseTraining:
         """
         if y is None:
             y = self.y
+
+        # for all the potentils in the global potentials
         for p in self.global_potential.potentials:
-
+            # if the potential is a countable grounding potential
             if isinstance(p, CountableGroundingPotential):
-
+                # call the potential and get the number of true clauses
                 ntrue = p(y=None)
-                # nfalse = (2**p.cardinality)*p.num_groundings - ntrue
+                # nfalse = (2**p.cardinality)*p.num_groundings - ntrue (simple relationshp)
                 nfalse = (2**p.cardinality) - ntrue
 
+                # ground the y
                 g, x = p.ground(y=y, x=x)
+                # get the phi on groundings
                 phi_on_groundings = p.call_on_groundings(g, x)
+                # compute the average data
                 avg_data = tf.reduce_mean(
                     tf.cast(phi_on_groundings, tf.float32), axis=-1
                 )
                 # avg_data = tf.abs(avg_data -  1e-7)
+                # compute the bet a
                 p.beta = tf.math.log(ntrue / nfalse) + tf.math.log(
                     avg_data / (1 - avg_data)
                 )
+                # top limit with the beta
                 if p.beta == np.inf:
                     p.beta = tf.Variable(100.0)
 
@@ -249,21 +283,26 @@ class PieceWiseTraining:
         Args:
             y: input tensor
             x: optional input tensor
-            soft_xent: soft extent
+            soft_xent: soft extent ?
         """
 
+        # if minibatch there are not None
         if self.minibatch is not None:
             y = tf.gather(y, self.minibatch)
+            # if x is not None
             if x is not None:
                 x = tf.gather(x, self.minibatch)
 
+        # for potentials in potentials
         for p in self.global_potential.potentials:
-
+            # if this is a supervision logical potential
             if isinstance(p, SupervisionLogicalPotential):
-
+                # compute the gradients with respect to some inputs (the tf.Variable)
+                # [basically learning procedure]
                 with tf.GradientTape(persistent=True) as tape:
 
                     y = p._reshape_y(y)
+                    # prediction
                     o = p.model(x)
                     if not soft_xent:
                         xent = tf.reduce_mean(
@@ -273,8 +312,10 @@ class PieceWiseTraining:
                         xent = tf.reduce_mean(-y * tf.log(tf.nn.softmax(o)))
                     xent += tf.reduce_sum(p.model.losses)
 
+                # compute the gradient thanks to the tape
                 grad = tape.gradient(target=xent, sources=p.model.variables)
 
                 # Apply Gradients by means of Optimizer
                 grad_vars = zip(grad, p.model.variables)
+                # apply gradients using the optimizer
                 self.optimizer.apply_gradients(grad_vars)

@@ -449,6 +449,7 @@ class FuzzyMAPInference:
         """
         # MAP
         self.potential = potential
+        # set the potential logic
         for p in self.potential.potentials:
             p.logic = logic
 
@@ -462,6 +463,7 @@ class FuzzyMAPInference:
             )
         else:
             self.var_map = self.var_dict["var"]
+        # Adam
         self.opt = tf.keras.optimizers.Adam(learning_rate)
         self.evidence = evidence
         self.evidence_mask = evidence_mask
@@ -473,6 +475,7 @@ class FuzzyMAPInference:
             x: optional tensor
         """
 
+        # apply the potential and appply the gradient step in the inference
         with tf.GradientTape() as tape:
             y = self.map()
             p_m = -self.potential(y, x=x)
