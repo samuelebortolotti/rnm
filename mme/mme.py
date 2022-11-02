@@ -13,6 +13,7 @@ from mme.potentials import (
 )
 import numpy as np
 from collections.abc import Iterable
+import wandb
 
 
 class Domain:
@@ -226,8 +227,6 @@ class PieceWiseTraining:
     From what I know, this class shoul define the training both for the supervised (subsymbolic learning)
     And for the symbolic learning
     """
-
-    import wandb
 
     def __init__(self, global_potential, y=None, learning_rate=0.001, minibatch=None):
         """Constructor of the PieceWiseTraining class
