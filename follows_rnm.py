@@ -44,7 +44,6 @@ import datasets
 import numpy as np
 import os
 from itertools import product
-import wandb
 
 """It is used in order to restrict the execution to a specific CUDA device"""
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -68,8 +67,6 @@ def main(lr, seed, perc_soft, l2w):
         accuracy_nn: accuracy neural network
     """
 
-    """Init wandb"""
-    wandb.init(project="relational-neural-machines", entity="samu32")
     print(lr, seed, perc_soft)
 
     """Number of examples as listed in the paper"""
@@ -198,7 +195,6 @@ def main(lr, seed, perc_soft, l2w):
                 tf.equal(tf.argmax(y_test, axis=1), tf.argmax(y_nn, axis=1)), tf.float32
             )
         )
-        wandb.log({"nn/epoch": _, "nn/train_accuracy": acc_nn})
         #  print(acc_nn)
 
     """Inference"""
@@ -234,7 +230,6 @@ def main(lr, seed, perc_soft, l2w):
             )
             # Accuracy of the MAP
             #  print("Accuracy MAP", acc_map.numpy())
-            wandb.log({"map/step": i, "map/accuracy": acc_map})
             #  print(y_map[:3])
         if mme.utils.heardEnter():
             break
@@ -268,6 +263,7 @@ if __name__ == "__main__":
     for a in product([0, 0.05, 0.08, 0.1, 0.2, 0.3, 0.5, 0.8, 1], [0.1]):
         # the first element of the loop indicates the percentage, the second the learning rate
         perc, lr = a
+        print(f"percentage of the soft rules [not hold]: {perc}, learning rate: {lr}")
         # returns the accuracy map and the accuracy neural network
         acc_map, acc_nn = main(lr=lr, seed=seed, perc_soft=perc, l2w=0.01)
         # ghe the numpy vectors out of themp

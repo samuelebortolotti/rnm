@@ -13,7 +13,6 @@ from mme.potentials import (
 )
 import numpy as np
 from collections.abc import Iterable
-import wandb
 
 
 class Domain:
@@ -314,7 +313,6 @@ class PieceWiseTraining:
                     xent += tf.reduce_sum(p.model.losses)
 
                 # compute the gradient thanks to the tape
-                wandb.log({"nn/loss": xent})
                 grad = tape.gradient(target=xent, sources=p.model.variables)
 
                 # Apply Gradients by means of Optimizer

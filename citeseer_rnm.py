@@ -196,7 +196,7 @@ def main(
                     tf.float32,
                 )
             )
-            print(acc_nn)
+            #  print(acc_nn)
 
         y_new = tf.gather(tf.eye(num_classes), tf.argmax(nn(x_all), axis=1), axis=0)
 
@@ -218,8 +218,8 @@ def main(
 
         """BETA TRAINING"""
         pwt.compute_beta_logical_potentials(y=hb)
-        for p in potentials:
-            print(p, p.beta)
+        #  for p in potentials:
+        #      print(p, p.beta)
 
         """NN TRAINING"""
         epochs = 50
@@ -233,7 +233,7 @@ def main(
                     tf.float32,
                 )
             )
-            print("TRAINING", acc_nn.numpy())
+            #  print("TRAINING", acc_nn.numpy())
 
         """Fix the training hb for inference"""
         new_labels = tf.where(mask_train_labels > 0, labels, 0.5 * tf.ones_like(labels))

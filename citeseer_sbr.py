@@ -136,7 +136,7 @@ def main(
                 tf.equal(tf.argmax(y_test, axis=1), tf.argmax(y_nn, axis=1)), tf.float32
             )
         )
-        print(acc_nn)
+        #  print(acc_nn)
 
     return pretrain_acc, acc_nn
 
