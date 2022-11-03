@@ -40,13 +40,13 @@ if __name__ == "__main__":
     df_time = pd.DataFrame()
     df = pd.DataFrame()
 
-    if args.method in ["follows_rnm", "follows_sbr"]:
+    if args.method in ["follows_rnm", "follows_sbr", "citeseer_rnm", "citeseer_sbr"]:
         for i in range(args.times):
-            seed = random.randrange(1000)
+            seed = 0  # random.randrange(1000)
             start = time.time()
             print(
                 subprocess.check_output(
-                    ["python", f"../{args.method}.py", "--seed", f"{seed}"]
+                    ["python", f"rnm/{args.method}.py", "--seed", f"{seed}"]
                 )
             )
             end = time.time()
@@ -57,6 +57,7 @@ if __name__ == "__main__":
                     "res_dlm_%d" % seed,
                     sep="\t",
                     names=["perc", "lr", "acc_map", "acc_nn"],
+                    skiprows=1,
                 )
                 fig = plt.figure()
                 plt.plot(1 - df["perc"], df["acc_map"], label="Accuracy of MAP")
@@ -64,8 +65,7 @@ if __name__ == "__main__":
                     1 - df["perc"], df["acc_nn"], label="Accuracy of the NN prediction"
                 )
                 fig.savefig(f"follows_rnm: {seed}", dpi=fig.dpi)
-
-            if args.method == "follows_rnm":
+            elif args.method == "follows_sbr":
                 df = pd.read_csv(
                     "res_lyrics_cc_%d" % seed,
                     sep="\t",
@@ -77,5 +77,29 @@ if __name__ == "__main__":
                     1 - df["perc"], df["acc_nn"], label="Accuracy of the NN prediction"
                 )
                 fig.savefig(f"follows_sbr: {seed}", dpi=fig.dpi)
+            elif args.method == "citeseer_rnm":
+                df = pd.read_csv(
+                    "res_rnm_10_splits",
+                    sep="\t",
+                    names=["seed", "test_size", "acc_map", "acc_nn"],
+                )
+                fig = plt.figure()
+                plt.plot(df["test_size"], df["acc_map"], label="Accuracy of MAP")
+                plt.plot(
+                    df["test_size"], df["acc_nn"], label="Accuracy of the NN prediction"
+                )
+                fig.savefig(f"follows_sbr: {seed}", dpi=fig.dpi)
+            else:
+                df = pd.read_csv(
+                    "res_rnm_10_splits",
+                    sep="\t",
+                    names=["seed", "test_size", "acc_map", "acc_nn"],
+                )
+                fig = plt.figure()
+                plt.plot(df["test_size"], df["acc_map"], label="Accuracy of MAP")
+                plt.plot(
+                    df["test_size"], df["acc_nn"], label="Accuracy of the NN prediction"
+                )
+                fig.savefig(f"follows_sbr: {seed}", dpi=fig.dpi)
 
-    df_time.to_csv("time_analysis_{args.method}.csv")
+    df_time.to_csv(f"time_analysis_{args.method}.csv")

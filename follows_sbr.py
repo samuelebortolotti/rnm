@@ -24,6 +24,7 @@ import datasets
 import numpy as np
 import os
 from itertools import product
+import argparse
 
 """Set the visible device"""
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -245,10 +246,46 @@ def main(lr, seed, perc_soft, l2w=0.01, w_rule=0.01):
     return acc_nn, acc_map
 
 
+def get_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        prog="follows_sbr",
+        description="Semantic Based Regularization argument.",
+    )
+    parser.add_argument(
+        "--seed",
+        metavar="SEED",
+        required=False,
+        default=None,
+        type=int,
+        help="Execution seed.",
+    )
+    parsed_args = parser.parse_args()
+    return parsed_args
+
+
 if __name__ == "__main__":
     """Main method"""
     res = []
     seed = 0
+    args = get_args()
+
+    if args.seed is None:
+        print("No seed specified, thus I am using the default one:", 0)
+    else:
+        print("Selected seed: ", seed)
+        seed = args.seed
+
+    print(tf.config.list_physical_devices("GPU"))
+    # [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+    print(tf.test.is_built_with_cuda())
+    # <function is_built_with_cuda at 0x7f4f5730fbf8>
+    print(tf.test.gpu_device_name())
+    # /device:GPU:0
+    print(tf.config.get_visible_devices())
+
+    # set the GPU
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     """Also in this case, we are trying different settings for lr percentage and w_rule"""
     for lr, perc, w_rule, in product(
@@ -278,6 +315,6 @@ if __name__ == "__main__":
             print(i)
 
     # append the result on the file
-    with open("res_lyrics_cc", "a") as file:
+    with open(f"res_lyrics_cc_{seed}", "a") as file:
         file.write("lr,perc,w_rule,acc_nn, acc_map\n")
         file.writelines(res)

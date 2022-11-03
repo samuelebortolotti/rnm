@@ -214,6 +214,15 @@ if __name__ == "__main__":
     np.random.seed(0)
     # seeds
     seeds = np.random.choice(np.arange(1000), [10], replace=False)
+
+    print(tf.config.list_physical_devices("GPU"))
+    # [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+    print(tf.test.is_built_with_cuda())
+    # <function is_built_with_cuda at 0x7f4f5730fbf8>
+    print(tf.test.gpu_device_name())
+    # /device:GPU:0
+    print(tf.config.get_visible_devices())
+
     # seeds=[0]
     for a in product(seeds, [0.1, 0.25, 0.5, 0.75, 0.9], [500]):
         seed, test_size, w_rule = a  # get the hyperparameters
@@ -239,6 +248,6 @@ if __name__ == "__main__":
             print(i)
 
     # write the csv
-    with open("res_sbr_10splits", "w") as file:
+    with open(f"res_sbr_10splits", "w") as file:
         file.write("seed, test_size, w_rule, acc_map, acc_nn\n")
         file.writelines(res)

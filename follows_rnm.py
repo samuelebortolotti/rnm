@@ -44,6 +44,7 @@ import datasets
 import numpy as np
 import os
 from itertools import product
+import argparse
 
 """It is used in order to restrict the execution to a specific CUDA device"""
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -251,10 +252,47 @@ def main(lr, seed, perc_soft, l2w):
     return [acc_map, acc_nn]
 
 
+def get_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        prog="follows_rnm",
+        description="Relational Neural Machine argument.",
+    )
+    parser.add_argument(
+        "--seed",
+        metavar="SEED",
+        required=False,
+        default=None,
+        type=int,
+        help="Execution seed.",
+    )
+    parsed_args = parser.parse_args()
+    return parsed_args
+
+
 """Main execution"""
 if __name__ == "__main__":
     """Set the seed"""
     seed = 0
+
+    # get the args
+    args = get_args()
+    if args.seed is None:
+        print("No seed specified, thus I am using the default one:", 0)
+    else:
+        print("Selected seed: ", seed)
+        seed = args.seed
+
+    print(tf.config.list_physical_devices("GPU"))
+    # [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+    print(tf.test.is_built_with_cuda())
+    # <function is_built_with_cuda at 0x7f4f5730fbf8>
+    print(tf.test.gpu_device_name())
+    # /device:GPU:0
+    print(tf.config.get_visible_devices())
+
+    """Set the GPU"""
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     res = []
     # loop overt the tuples (x, 0.1) since product is the cartesian product

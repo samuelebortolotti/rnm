@@ -12,6 +12,7 @@ import datasets
 import numpy as np
 import os
 from itertools import product
+import argparse
 
 """Cuda visible devices"""
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -344,11 +345,23 @@ if __name__ == "__main__":
     """Main function"""
     seed = 0  # set the seed
     """Write the file header"""
-    with open("res_dlm_10_splits", "w") as file:
+    with open(f"res_dlm_10_splits_{seed}", "w") as file:
         file.write("seed, test, acc_map, acc_nn\n")
+
     res = []
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+    """Set the GPU to copute the data"""
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     np.random.seed(0)
+
+    print(tf.config.list_physical_devices("GPU"))
+    # [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+    print(tf.test.is_built_with_cuda())
+    # <function is_built_with_cuda at 0x7f4f5730fbf8>
+    print(tf.test.gpu_device_name())
+    # /device:GPU:0
+    print(tf.config.get_visible_devices())
+
     seeds = np.random.choice(np.arange(1000), [10], replace=False)
     # seeds=[0]
     for a in product(
@@ -385,6 +398,6 @@ if __name__ == "__main__":
         # print
         for i in res:
             print(i)
-        # append to the csv file
-        with open("res_rnm_10_splits", "a") as file:
-            file.write(res[-1])
+    # append to the csv file
+    with open(f"res_rnm_10_splits", "a") as file:
+        file.write(res[-1])
