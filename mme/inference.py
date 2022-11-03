@@ -469,7 +469,6 @@ class FuzzyMAPInference:
         self.evidence_mask = evidence_mask
 
     def infer_step(self, x=None):
-        import wandb
 
         """Method representing the inference step
 
@@ -481,7 +480,6 @@ class FuzzyMAPInference:
         with tf.GradientTape() as tape:
             y = self.map()
             p_m = -self.potential(y, x=x)
-        wandb.log({"map/loss": p_m})
         grad = tape.gradient(p_m, self.var_map)
         grad_vars = [(grad, self.var_map)]
         self.opt.apply_gradients(grad_vars)

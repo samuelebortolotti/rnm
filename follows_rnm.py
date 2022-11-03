@@ -67,8 +67,6 @@ def main(lr, seed, perc_soft, l2w):
         accuracy_nn: accuracy neural network
     """
 
-    print(lr, seed, perc_soft)
-
     """Number of examples as listed in the paper"""
     num_examples = 50
 

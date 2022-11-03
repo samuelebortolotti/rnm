@@ -24,7 +24,6 @@ import datasets
 import numpy as np
 import os
 from itertools import product
-import wandb
 
 """Set the visible device"""
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -47,8 +46,6 @@ def main(lr, seed, perc_soft, l2w=0.01, w_rule=0.01):
         acc_nn: accuracy of the neural network
         acc_map: accuracy of the maximum a posteriori estimation
     """
-    wandb.init(project="relational-neural-machines", entity="samu32")
-    print(lr, seed, perc_soft)
 
     num_examples = 200  # number of samples
 
