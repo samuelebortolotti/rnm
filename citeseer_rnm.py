@@ -136,6 +136,7 @@ def main(
         )
     )  # up to the last hidden layer
     nn.add(tf.keras.layers.Dense(num_classes, use_bias=False))
+    tf.keras.utils.plot_model(nn)
 
     # logical with supervision given the indices and the nn
     p1 = mme.potentials.SupervisionLogicalPotential(nn, indices)

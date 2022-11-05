@@ -309,7 +309,7 @@ class SupervisionLogicalPotential(Potential):
         super(SupervisionLogicalPotential, self).__init__()
         self.model = model
         # beta now is a vector of ones, unlike in Poential
-        self.beta = tf.Variable(initial_value=tf.ones(shape=()))
+        self.beta = tf.Variable(initial_value=tf.ones(shape=())) # coefficients
         self.indices = indices
 
     def _reshape_y(self, y):

@@ -18,7 +18,8 @@ from collections.abc import Iterable
 class Domain:
     """Domain class
     Defines an ontology domain.
-    It basically consists in a name and a series of data
+    It basically consists in a name and a series of data, the lendth of the data is
+    basically the number of constant
     """
 
     def __init__(self, name, data):
@@ -62,7 +63,7 @@ class Predicate:
                 raise Exception(str(domain) + " is not an instance of " + str(Domain))
             # append the domain, and multiply the grounding nmbers with the constants number in the domain
             self.domains.append(domain)
-            groundings_number *= domain.num_constants
+            groundings_number *= domain.num_constants # basically the number of groundings is the number of constants in a domain
         self.groundings_number = groundings_number
         self.given = given
 
@@ -86,7 +87,7 @@ class Ontology:
         """
 
         self.domains = {}
-        self.predicates = OrderedDict()
+        self.predicates = OrderedDict() # ordered dictionary
         self.herbrand_base_size = 0
         self.predicate_range = {}
         self.finalized = False
@@ -127,6 +128,7 @@ class Ontology:
                 self.herbrand_base_size,
                 self.herbrand_base_size + p.groundings_number,
             )
+            # remember, the herbrand base is the set of all the groundings atoms
             self.herbrand_base_size += p.groundings_number
 
     def get_constraint(self, formula):
@@ -223,7 +225,7 @@ class MonteCarloTraining:
 class PieceWiseTraining:
     """PieceWiseTraining class
 
-    From what I know, this class shoul define the training both for the supervised (subsymbolic learning)
+    From what I know, this class should define the training both for the supervised (subsymbolic learning)
     And for the symbolic learning
     """
 
@@ -236,13 +238,13 @@ class PieceWiseTraining:
             learning_rate: learning rate [default 0.001]
             minibatch: mini batch
         """
-        self.global_potential = global_potential
+        self.global_potential = global_potential # global potential instance
         self.optimizer = tf.keras.optimizers.Adam(learning_rate)  # Adam optimizer
         self.minibatch = minibatch  # list of indices to gather from data
         self.y = y
 
     def compute_beta_logical_potentials(self, y=None, x=None):
-        """Compute beta logical potentials
+        """Compute beta (weights) logical potentials
 
         Args:
             y: optional input tensor

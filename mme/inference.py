@@ -1,8 +1,8 @@
 """inference.py
 Module containing all the information needed to perform inference
 """
-import tensorflow as tf
 
+import tensorflow as tf
 # import tensorflow_probability as tfp
 import numpy as np
 

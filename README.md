@@ -24,7 +24,15 @@ Current tests on Google Colab:
 
 ### MNIST
 
-The Neural Network employed in `MNIST` is ![Architecture NN](.github/nn_mnist.png)
+The Neural Network employed in `MNIST` is 
+
+![Architecture NN](.github/nn_mnist.png)
+
+### CiteSeer
+
+The Neural Network employed in `CiteSeer` is 
+
+![Architecture NN](.github/citeseer.png)
 
 # Getting Started
 

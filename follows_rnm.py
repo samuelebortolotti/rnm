@@ -83,7 +83,7 @@ def main(lr, seed, perc_soft, l2w):
     # array ofzeros with the same shape and type as the array given
     m_e = np.zeros_like(hb_train)
     # selects all the lines, from number of samples * 10 to the end to 1
-    m_e[:, num_examples * 10 :] = 1
+    m_e[:, num_examples * 10 :] = 1 # 1, 3100 array with 2600 1s and 500 zeros
 
     # set the y_e_train to the hb train * m_e, also when including tests
     y_e_train = hb_train * m_e
@@ -93,14 +93,14 @@ def main(lr, seed, perc_soft, l2w):
     o = mme.Ontology()  # empty ontology for the moment
 
     # Domains: add the domains to the ontology
-    # domain of images, associating the training samples
+    # domain of images, associating the training samples (which are the data and the corresponding constraints)
     images = mme.Domain("Images", data=x_train)
     # domain of numbers (digits) associating an np.array depicting the digits
     numbers = mme.Domain("Numbers", data=np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).T)
     # we add the domains of the ontology to the ontology
     o.add_domain([images, numbers])
 
-    # Predicates (given means probabily that it is already defined? Seems to be like that)
+    # Predicates
     # digit is a predicate (Digit(x, y) [image and value] in FOL) associated with the domain (images and Numbers)
     digit = mme.Predicate("digit", domains=[images, numbers])
     # link is a predicate associated to two images domain (rember) link(x, y) in FOL and it is given
@@ -111,15 +111,11 @@ def main(lr, seed, perc_soft, l2w):
     o.add_predicate([digit, links, follows])
 
     """MME definition"""
-    # Supervision
-    # first, it creates an array from 0 to images.num_constants * numbers.num_constants - 1
-    # then it reshape the array to images.num_constants, numbers.num_constants
-    # finally a matrix which contains progressive values from 0 onwards
-    # with images.num_constants rows and numbers.num_constants columns
+    # Supervision: set of indices
     indices = np.reshape(
         np.arange(images.num_constants * numbers.num_constants),
         [images.num_constants, numbers.num_constants],
-    )
+    ) # set of indices from 0 to 499
     """Creation of the supervised learning Neural Network"""
     nn = (
         tf.keras.Sequential()
@@ -153,10 +149,10 @@ def main(lr, seed, perc_soft, l2w):
     """
 
     # Definition of potentials for supervision
-    p1 = mme.potentials.SupervisionLogicalPotential(nn, indices)
+    p1 = mme.potentials.SupervisionLogicalPotential(nn, indices) # passing the neural network and the indices
 
     # Mutual Exclusivity (needed for inference, since SupervisionLogicalPotential already subsumes it during training)
-    p2 = mme.potentials.MutualExclusivityPotential(indices=indices)
+    p2 = mme.potentials.MutualExclusivityPotential(indices=indices) # only the indices passed
 
     # Logical formula
     c = mme.Formula(
@@ -283,6 +279,7 @@ if __name__ == "__main__":
         print("Selected seed: ", seed)
         seed = args.seed
 
+    # print the gpu device
     print(tf.config.list_physical_devices("GPU"))
     # [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
     print(tf.test.is_built_with_cuda())
